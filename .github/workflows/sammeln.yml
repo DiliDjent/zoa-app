@@ -22,11 +22,15 @@ concurrency:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 jobs:
   sammeln:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    outputs:
+      geaendert: ${{ steps.commit.outputs.geaendert }}
     steps:
       - uses: actions/checkout@v4
 
@@ -38,13 +42,29 @@ jobs:
         run: node scripts/sammeln.mjs
 
       - name: Commit
+        id: commit
         run: |
           git config user.name "verlauf-bot"
           git config user.email "verlauf-bot@users.noreply.github.com"
           git add static/verlauf/verlauf.csv
           # Nichts zu committen ist kein Fehler (z. B. wenn alle Quellen ausfielen).
-          git diff --cached --quiet && exit 0
+          if git diff --cached --quiet; then
+            echo "geaendert=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           git commit -m "Verlauf: $(date -u +'%Y-%m-%d %H:%M') UTC"
           # Falls inzwischen jemand gepusht hat: nachziehen statt scheitern.
           git pull --rebase --autostash
           git push
+          echo "geaendert=true" >> "$GITHUB_OUTPUT"
+
+  # Die Seite neu bauen, damit die Messzeile auch dort ankommt. Ein Push mit
+  # dem GITHUB_TOKEN loest den Deploy-Workflow nicht von selbst aus.
+  veroeffentlichen:
+    needs: sammeln
+    if: needs.sammeln.outputs.geaendert == 'true'
+    uses: ./.github/workflows/deploy.yml
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
