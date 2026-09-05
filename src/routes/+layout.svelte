@@ -2,6 +2,7 @@
   import '../app.css';
   import { page } from '$app/stores';
   import { base } from '$app/paths';
+  import { browser, dev } from '$app/environment';
   import { onMount } from 'svelte';
   import { t, locale, setLocale, initLocale, LOCALES, coverage } from '$lib/i18n';
 
@@ -11,7 +12,33 @@
 
   onMount(() => {
     initLocale();
+    registerServiceWorker();
   });
+
+  /**
+   * Service Worker anmelden.
+   *
+   * Bewusst von Hand statt ueber den Helfer des PWA-Plugins:
+   *  - Das Plugin erzeugt zwar registerSW.js, bindet es bei einem
+   *    SvelteKit-Build aber nicht in die Seite ein. Ohne eigene Anmeldung
+   *    waere die App keine echte PWA - kein Offline-Betrieb.
+   *  - Sein Helfer meldet mit einem relativen Pfad ('./sw.js') an. Auf einer
+   *    tiefen Route wie /statistik zeigt der ins Leere, und Fehler dabei
+   *    verschluckt er in einem eigenen catch. Am Geraet getestet: er kam nie
+   *    zu einer Registrierung.
+   * Der absolute Pfad unten ist eindeutig, und ein Fehler wird sichtbar.
+   */
+  async function registerServiceWorker() {
+    if (!browser || !('serviceWorker' in navigator)) return;
+    // Im Entwicklungsmodus wird kein Service Worker gebaut - dann waere die
+    // Anmeldung nur ein 404 in der Konsole.
+    if (dev) return;
+    try {
+      await navigator.serviceWorker.register(`${base}/sw.js`, { scope: `${base}/` });
+    } catch (err) {
+      console.error('Service Worker konnte nicht angemeldet werden:', err);
+    }
+  }
 
   const NAV = [
     { href: '/', key: 'nav.barometer', icon: 'gauge' },

@@ -53,6 +53,15 @@ lässt — dort erscheint auch der Hinweis „Zum Startbildschirm hinzufügen".
 | i18n | **eigener Store** (~110 Zeilen) | Bibliotheken wie Paraglide bringen einen Compiler-Schritt mit. Für drei Sprachen mit JSON-Dateien wäre das mehr Aufwand als Nutzen — und Ladinisch (`lld`) ist in vielen Bibliotheken kein bekanntes Gebietsschema. |
 | Tests | **Vitest** | Nur für die Logik, die Daten korrigiert oder Lücken erkennt. |
 
+**Service Worker — nur für die App-Hülle.** Er hält HTML, JS, CSS und Symbole
+vor, damit die App offline startet. Livedaten cached er bewusst **nicht**: Ein
+Service Worker, der API-Antworten zwischenspeichert, liefert sie offline als
+normalen Erfolg aus, und die App hielte sie für frisch. Den Rückfall auf den
+letzten bekannten Stand macht die Adapter-Schicht — mit echtem Zeitstempel.
+Aus demselben Grund holen die Adapter mit `cache: 'no-store'`, sonst springt
+der HTTP-Cache des Browsers still ein. Beides am Gerät im Offline-Test
+gefunden und verifiziert.
+
 **Hosting:** Der Export ist rein statisch und läuft unverändert auf GitHub
 Pages, Cloudflare Pages oder Vercel Free. Alle vier Datenquellen senden
 CORS-Header, die den Zugriff aus dem Browser erlauben — es wird **kein Proxy

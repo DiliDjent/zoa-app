@@ -113,9 +113,22 @@ function mergeSignals(a: AbortSignal, b: AbortSignal): AbortSignal {
   return ctrl.signal;
 }
 
-/** Kleiner Helfer: JSON holen und bei HTTP-Fehler sauber scheitern. */
+/**
+ * Kleiner Helfer: JSON holen und bei HTTP-Fehler sauber scheitern.
+ *
+ * `cache: 'no-store'` ist hier entscheidend. Ohne diese Angabe liefert der
+ * Browser offline eine alte Antwort aus seinem HTTP-Cache - und zwar als
+ * ganz normalen Erfolg. Der Adapter haelt die Daten dann fuer frisch und
+ * zeigt "gerade eben" ohne Offline-Hinweis. Am Geraet im Flugmodus so
+ * beobachtet. Mit 'no-store' scheitert der Abruf ehrlich, und der Rueckfall
+ * auf den eigenen Zwischenspeicher greift - mit dem echten Zeitstempel.
+ */
 export async function fetchJson<T>(url: string, signal?: AbortSignal): Promise<T> {
-  const res = await fetch(url, { signal, headers: { Accept: 'application/json' } });
+  const res = await fetch(url, {
+    signal,
+    cache: 'no-store',
+    headers: { Accept: 'application/json' }
+  });
   if (!res.ok) throw new Error(`HTTP ${res.status} bei ${url}`);
   return (await res.json()) as T;
 }

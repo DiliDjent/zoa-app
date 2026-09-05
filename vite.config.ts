@@ -13,46 +13,14 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,webmanifest}'],
         navigateFallback: '/200.html',
-        runtimeCaching: [
-          {
-            // Livedaten: erst Netz, bei Ausfall der letzte bekannte Stand.
-            urlPattern: /^https:\/\/(mobility|tourism)\.api\.opendatahub\.com\/.*/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'odh-api',
-              networkTimeoutSeconds: 8,
-              expiration: { maxEntries: 80, maxAgeSeconds: 60 * 60 * 24 * 7 }
-            }
-          },
-          {
-            urlPattern: /^https:\/\/static-verkehr\.provinz\.bz\.it\/.*/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'verkehrsbericht',
-              networkTimeoutSeconds: 8,
-              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 7 }
-            }
-          },
-          {
-            // Jahresstatistik aendert sich selten - Cache zuerst.
-            urlPattern: /^https:\/\/geoservices1\.civis\.bz\.it\/.*/i,
-            handler: 'StaleWhileRevalidate',
-            options: {
-              cacheName: 'astat-wfs',
-              expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 90 }
-            }
-          },
-          {
-            // Webcam-Bilder nie lange cachen, sonst zeigt die App altes Wetter.
-            urlPattern: /\.(?:jpg|jpeg|png)$/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'webcams',
-              networkTimeoutSeconds: 10,
-              expiration: { maxEntries: 20, maxAgeSeconds: 60 * 30 }
-            }
-          }
-        ]
+        // Bewusst KEIN Laufzeit-Cache fuer Livedaten und Webcams.
+        // Ein Service Worker, der API-Antworten zwischenspeichert, liefert sie
+        // offline als normalen Erfolg aus - die App haelt sie dann fuer frisch
+        // und zeigt "gerade eben" statt "Keine Verbindung". Den Rueckfall auf
+        // den letzten bekannten Stand macht die Adapter-Schicht selbst, und
+        // zwar mit dem echten Zeitstempel. Der Service Worker haelt nur die
+        // App-Huelle vor (Precache oben), damit die App offline startet.
+        runtimeCaching: []
       }
     })
   ]
