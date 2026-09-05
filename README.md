@@ -29,8 +29,21 @@ npm run dev
 ```
 
 Die App läuft dann auf `http://localhost:5173`. `npm run dev` bindet auch an das
-lokale Netz, sodass sie sich vom Handy aus unter `http://<PC-IP>:5173` testen
-lässt — dort erscheint auch der Hinweis „Zum Startbildschirm hinzufügen".
+lokale Netz, sodass sich die Oberfläche vom Handy aus unter
+`http://<PC-IP>:5173` ansehen lässt.
+
+**Für den echten PWA-Test (Offline, Home-Screen) reicht das nicht:** Service
+Worker laufen nur in einem sicheren Kontext, und eine LAN-Adresse über HTTP ist
+keiner. Der Ausweg per USB — `localhost` gilt auch auf dem Handy als sicher:
+
+```bash
+npm run build
+adb reverse tcp:4173 tcp:4173
+npx vite preview --port 4173
+```
+
+Dann am Handy `http://localhost:4173` öffnen. Der Entwicklungsmodus erzeugt
+keinen Service Worker, deshalb der gebaute Stand.
 
 | Befehl | Zweck |
 | --- | --- |
