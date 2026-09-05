@@ -1,5 +1,7 @@
 # ZOA-App
 
+**Live: https://dilidjent.github.io/zoa-app/**
+
 Bürger-Web-App für die Gemeinde Kastelruth (Südtirol). Sie macht die Belastung
 durch den Tourismus in Zahlen sichtbar und soll später Transparenz über die
 Gemeindepolitik schaffen.
@@ -75,17 +77,25 @@ Aus demselben Grund holen die Adapter mit `cache: 'no-store'`, sonst springt
 der HTTP-Cache des Browsers still ein. Beides am Gerät im Offline-Test
 gefunden und verifiziert.
 
-**Hosting:** Der Export ist rein statisch und läuft unverändert auf GitHub
-Pages, Cloudflare Pages oder Vercel Free. Alle vier Datenquellen senden
-CORS-Header, die den Zugriff aus dem Browser erlauben — es wird **kein Proxy
-und kein Server benötigt.** Die Vorgabe „0 €" ist damit dauerhaft erfüllt, nicht
-nur bis zum ersten Nutzer.
+**Hosting: GitHub Pages.** Der Workflow `deploy.yml` baut bei jedem Push auf
+`main` und veröffentlicht nach https://dilidjent.github.io/zoa-app/. Der Export
+ist rein statisch — er liefe genauso auf Cloudflare Pages oder Vercel Free.
+Alle Datenquellen senden CORS-Header, die den Zugriff aus dem Browser erlauben:
+**kein Proxy, kein Server.** Die Vorgabe „0 €" ist damit dauerhaft erfüllt.
 
-Für ein Unterverzeichnis (etwa GitHub Pages unter `/zoa-app/`):
+Die Seite liegt unter dem Unterpfad `/zoa-app/`. Drei Stellen mussten dafür
+angepasst werden und sind es jetzt: das PWA-Plugin bekommt den Basispfad
+(`kit.base`), sonst hielte der Service Worker `/` statt `/zoa-app/` vor und
+wäre nicht installierbar; die SPA-Rückfallseite `200.html` liegt im Precache;
+das Manifest nutzt relative Pfade. Lokal:
 
 ```bash
-BASE_PATH=/zoa-app npm run build
+BASE_PATH=/zoa-app npm run build      # unter Git Bash: MSYS_NO_PATHCONV=1 voranstellen
 ```
+
+**Bekannter Versatz:** GitHub Pages hält Dateien 10 Minuten im CDN
+(`max-age=600`, nicht beeinflussbar). Eine neue Messzeile erscheint deshalb bis
+zu 10 Minuten nach dem Deploy auf der Seite. Bei 30-Minuten-Takt vertretbar.
 
 ---
 
@@ -203,9 +213,10 @@ kann — mit Zeitstempel und Commit-Historie.
 * Kosten: öffentliche Repositories haben unbegrenzte Action-Minuten, private
   2.000/Monat — 48 Läufe am Tag brauchen rund 1.440.
 
-Die Datei liegt unter `static/`, wird also mit ausgeliefert. Damit sie auf der
-veröffentlichten Seite aktuell bleibt, muss das Hosting bei jedem Push neu
-bauen (Cloudflare Pages und GitHub Pages tun das von selbst).
+Die Datei liegt unter `static/`, wird also mit ausgeliefert. Nach jedem Commit
+ruft der Sammel-Workflow den Deploy selbst auf — nötig, weil Pushes, die eine
+Action mit dem `GITHUB_TOKEN` macht, absichtlich keine weiteren Workflows
+auslösen. Ohne den Aufruf käme die Messzeile nie auf die Seite.
 
 Manuell anstoßen: `node scripts/sammeln.mjs`.
 
@@ -295,7 +306,15 @@ lässt sich das ergänzen, ohne die Adapter anzufassen.
 
 ---
 
+## Lizenz
+
+Code unter [MIT](LICENSE). Die gesammelten Daten in `static/verlauf/` unter
+CC0 — sie stammen aus offenen Quellen des Landes und des Open Data Hub.
+
 ## Mitarbeit
 
 Fehler in den Zahlen sind das Schlimmste, was dieser App passieren kann. Wer
-einen findet: bitte melden, mit Datum und Screenshot.
+einen findet: bitte als Issue melden, mit Datum und Screenshot.
+
+Beim lokalen Arbeiten: Der `verlauf-bot` committet alle 30 Minuten ins Repo —
+vor jedem eigenen Commit `git pull --rebase`.
