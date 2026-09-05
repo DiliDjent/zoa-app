@@ -1,0 +1,100 @@
+@import 'tailwindcss';
+
+/*
+ * Designsystem der ZOA-App.
+ *
+ * Leitgedanke: Der Status muss auf einen Blick lesbar sein, auch mit
+ * Handschuhen, im Gegenlicht und ohne Lesebrille. Deshalb grosse Flaechen,
+ * hoher Kontrast und Statusfarben, die sich nicht nur in der Farbe, sondern
+ * auch in Form und Beschriftung unterscheiden - Rot-Gruen-Sehschwaeche
+ * betrifft rund jeden zwoelften Mann.
+ */
+
+@theme {
+  --font-sans:
+    'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Statusfarben, gegen weissen und dunklen Grund geprueft */
+  --color-status-green: oklch(0.62 0.16 150);
+  --color-status-green-soft: oklch(0.95 0.04 150);
+  --color-status-amber: oklch(0.75 0.16 75);
+  --color-status-amber-soft: oklch(0.96 0.05 85);
+  --color-status-red: oklch(0.58 0.21 27);
+  --color-status-red-soft: oklch(0.95 0.04 27);
+  --color-status-neutral: oklch(0.6 0.02 260);
+
+  /* Markenton: gedecktes Dolomiten-Blau, bewusst unparteiisch */
+  --color-brand: oklch(0.48 0.09 245);
+  --color-brand-soft: oklch(0.95 0.02 245);
+}
+
+:root {
+  --surface: oklch(0.98 0.003 90);
+  --surface-raised: oklch(1 0 0);
+  --surface-sunken: oklch(0.95 0.005 90);
+  --ink: oklch(0.22 0.01 260);
+  --ink-muted: oklch(0.48 0.01 260);
+  --line: oklch(0.9 0.005 260);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface: oklch(0.19 0.008 260);
+    --surface-raised: oklch(0.24 0.01 260);
+    --surface-sunken: oklch(0.16 0.008 260);
+    --ink: oklch(0.96 0.003 260);
+    --ink-muted: oklch(0.7 0.01 260);
+    --line: oklch(0.32 0.01 260);
+    color-scheme: dark;
+
+    --color-status-green-soft: oklch(0.3 0.06 150);
+    --color-status-amber-soft: oklch(0.32 0.07 75);
+    --color-status-red-soft: oklch(0.3 0.08 27);
+    --color-brand-soft: oklch(0.28 0.04 245);
+  }
+}
+
+html {
+  background: var(--surface);
+  color: var(--ink);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  /* Randbereiche moderner Telefone respektieren */
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Sichtbarer Fokus fuer Tastatur- und Schalter-Steuerung */
+:focus-visible {
+  outline: 3px solid var(--color-brand);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@utility card {
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+}
+
+@utility muted {
+  color: var(--ink-muted);
+}
+
+/* Mindestgroesse fuer alles Antippbare: 44 px nach WCAG 2.2 */
+@utility tap {
+  min-height: 44px;
+  min-width: 44px;
+}

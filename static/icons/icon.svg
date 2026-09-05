@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="ZOA">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2b4a7a" />
+      <stop offset="1" stop-color="#16283f" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#sky)" />
+  <!-- Schlern-Silhouette: das Wahrzeichen ueber Kastelruth -->
+  <path
+    d="M64 372 L150 268 L196 316 L268 196 L330 268 L372 232 L448 372 Z"
+    fill="#e8eef6"
+    opacity="0.95"
+  />
+  <path d="M64 372 L448 372 L448 404 L64 404 Z" fill="#0f1c2e" opacity="0.35" />
+  <!-- Statuspunkt: die Ampel als Kern der App -->
+  <circle cx="384" cy="132" r="52" fill="#1a7f4b" stroke="#0f1c2e" stroke-width="10" />
+</svg>
