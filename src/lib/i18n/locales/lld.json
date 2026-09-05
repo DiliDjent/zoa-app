@@ -120,7 +120,10 @@
     "warningTitle": "",
     "warningText": "",
     "warningDismiss": "",
-    "history": ""
+    "history": "",
+    "factorWeather": "",
+    "forecastTag": "",
+    "assumptionTag": ""
   },
   "stats": {
     "title": "",
@@ -186,5 +189,43 @@
     "menu": "",
     "loadGauge": "",
     "statusOf": ""
+  },
+  "weather": {
+    "title": "",
+    "subtitle": "",
+    "today": "",
+    "tomorrow": "",
+    "rain": "",
+    "sun": "",
+    "forecastNote": "",
+    "todayMissing": "",
+    "q": {
+      "sunny": "",
+      "partlyCloudy": "",
+      "cloudy": "",
+      "veryCloudy": "",
+      "overcast": "",
+      "rain": "",
+      "thunderstorm": "",
+      "snow": "",
+      "fog": "",
+      "unknown": ""
+    }
+  },
+  "verlauf": {
+    "title": "",
+    "subtitle": "",
+    "source": "",
+    "none": "",
+    "daysRecorded": "",
+    "since": "",
+    "samples": "",
+    "closureDays": "",
+    "peakGarage": "",
+    "dailyIndex": "",
+    "download": "",
+    "why": "",
+    "daysRecordedOne": "",
+    "samplesOne": ""
   }
 }

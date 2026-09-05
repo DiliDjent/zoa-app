@@ -5,7 +5,9 @@ import { resolve } from 'node:path';
 // Logikfunktionen und brauchen weder SvelteKit noch das PWA-Plugin.
 export default defineConfig({
   resolve: {
-    alias: { $lib: resolve('./src/lib'), '$app/environment': resolve('./src/lib/test/app-environment.ts') }
+    alias: { $lib: resolve('./src/lib'), '$app/environment': resolve('./src/lib/test/app-environment.ts'),
+      '$app/paths': resolve('./src/lib/test/app-paths.ts')
+    }
   },
   test: { environment: 'node', include: ['src/**/*.test.ts'] }
 });

@@ -1,0 +1,50 @@
+# Oeffentliche Zeitreihe: alle 30 Minuten eine Messzeile anhaengen.
+#
+# Kostenrahmen: GitHub gewaehrt oeffentlichen Repositories unbegrenzte
+# Action-Minuten, privaten 2.000 pro Monat. Ein Lauf dauert unter einer Minute
+# und wird auf eine Minute aufgerundet: 48 Laeufe/Tag = ~1.440 Minuten/Monat.
+# Passt auch in ein privates Repository.
+#
+# GitHub verschiebt Cron-Laeufe bei Last um einige Minuten - die Zeitstempel
+# in der CSV sind deshalb die tatsaechlichen Abrufzeiten, nicht das Raster.
+
+name: Verlauf sammeln
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+# Nur ein Lauf gleichzeitig, sonst kollidieren zwei Commits.
+concurrency:
+  group: verlauf
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  sammeln:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Messzeile anhaengen
+        run: node scripts/sammeln.mjs
+
+      - name: Commit
+        run: |
+          git config user.name "verlauf-bot"
+          git config user.email "verlauf-bot@users.noreply.github.com"
+          git add static/verlauf/verlauf.csv
+          # Nichts zu committen ist kein Fehler (z. B. wenn alle Quellen ausfielen).
+          git diff --cached --quiet && exit 0
+          git commit -m "Verlauf: $(date -u +'%Y-%m-%d %H:%M') UTC"
+          # Falls inzwischen jemand gepusht hat: nachziehen statt scheitern.
+          git pull --rebase --autostash
+          git push

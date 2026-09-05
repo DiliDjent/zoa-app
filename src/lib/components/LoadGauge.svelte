@@ -91,11 +91,13 @@
             <td class="py-1.5 pr-2">
               {$t(f.labelKey)}
               {#if f.assumption}
-                <span class="muted">·&nbsp;Annahme</span>
+                <span class="muted">·&nbsp;{$t('load.assumptionTag')}</span>
+              {:else if f.forecast}
+                <span class="muted">·&nbsp;{$t('load.forecastTag')}</span>
               {/if}
               {#if f.score === null}
                 <span class="block muted">{$t('load.missingRedistributed')}</span>
-              {:else if f.detail && f.id === 'parking'}
+              {:else if f.detail && (f.id === 'parking' || f.id === 'weather')}
                 <span class="block muted tabular-nums">{f.detail}</span>
               {/if}
             </td>

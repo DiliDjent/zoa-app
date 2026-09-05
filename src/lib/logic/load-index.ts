@@ -1,5 +1,6 @@
 import type { ParkingLot } from '$lib/adapters/parking';
 import type { RoadStatus } from '$lib/adapters/traffic';
+import { weatherScore, type Weather } from '$lib/adapters/weather';
 
 /**
  * Belastungs-Index: eine Tageskennzahl von 0 bis 100.
@@ -17,7 +18,7 @@ import type { RoadStatus } from '$lib/adapters/traffic';
  * Dorf ab, nicht die Alm. Die Oberflaeche muss das benennen.
  */
 
-export type FactorId = 'parking' | 'road' | 'season' | 'weekday';
+export type FactorId = 'parking' | 'road' | 'weather' | 'season' | 'weekday';
 
 export interface Factor {
   id: FactorId;
@@ -38,6 +39,8 @@ export interface Factor {
    * Messung. Die Oberflaeche kennzeichnet solche Faktoren.
    */
   assumption?: boolean;
+  /** true, wenn der Faktor eine Vorhersage ist - weder Messung noch Annahme. */
+  forecast?: boolean;
 }
 
 export interface LoadIndex {
@@ -76,10 +79,11 @@ const SAISON_JE_MONAT: Record<number, number> = {
 };
 
 const BASE_WEIGHTS: Record<FactorId, number> = {
-  parking: 0.4,
+  parking: 0.35,
   road: 0.2,
-  season: 0.25,
-  weekday: 0.15
+  weather: 0.2,
+  season: 0.15,
+  weekday: 0.1
 };
 
 function localParts(now: Date) {
@@ -130,6 +134,14 @@ function roadFactor(road: RoadStatus | null): { score: number | null; detail: st
   }
 }
 
+function weatherFactor(weather: Weather | null): { score: number | null; detail: string } {
+  const day = weather?.days[0];
+  if (!day) return { score: null, detail: '' };
+  // Der Tag, auf den sich die Vorhersage bezieht, wird mitgegeben - fehlt der
+  // heutige in der Reihe, sieht der Leser, dass es der morgige ist.
+  return { score: weatherScore(day), detail: day.date };
+}
+
 function seasonFactor(month: number): { score: number; detail: string } {
   return { score: SAISON_JE_MONAT[month] ?? 50, detail: String(month) };
 }
@@ -150,14 +162,22 @@ export function levelKeyFor(value: number): string {
 }
 
 export function computeLoadIndex(
-  input: { parking: ParkingLot[] | null; road: RoadStatus | null },
+  input: { parking: ParkingLot[] | null; road: RoadStatus | null; weather?: Weather | null },
   now: Date = new Date()
 ): LoadIndex {
   const { month, dow } = localParts(now);
 
-  const raw: { id: FactorId; labelKey: string; score: number | null; detail: string; assumption?: boolean }[] = [
+  const raw: {
+    id: FactorId;
+    labelKey: string;
+    score: number | null;
+    detail: string;
+    assumption?: boolean;
+    forecast?: boolean;
+  }[] = [
     { id: 'parking', labelKey: 'load.factorParking', ...parkingFactor(input.parking) },
     { id: 'road', labelKey: 'load.factorRoad', ...roadFactor(input.road) },
+    { id: 'weather', labelKey: 'load.factorWeather', ...weatherFactor(input.weather ?? null), forecast: true },
     { id: 'season', labelKey: 'load.factorSeason', ...seasonFactor(month), assumption: true },
     { id: 'weekday', labelKey: 'load.factorWeekday', ...weekdayFactor(dow), assumption: true }
   ];
@@ -191,13 +211,15 @@ export function computeLoadIndex(
       score: f.score,
       contribution: f.score === null ? 0 : (f.score * effective),
       detail: f.detail,
-      assumption: f.assumption
+      assumption: f.assumption,
+      forecast: f.forecast
     };
   });
 
   const value = Math.round(factors.reduce((s, f) => s + f.contribution, 0));
+  // Gemessen heisst gemessen: Vorhersagen und Annahmen zaehlen hier nicht.
   const measuredWeight = factors
-    .filter((f) => f.score !== null && !f.assumption)
+    .filter((f) => f.score !== null && !f.assumption && !f.forecast)
     .reduce((s, f) => s + f.effectiveWeight, 0);
 
   return {

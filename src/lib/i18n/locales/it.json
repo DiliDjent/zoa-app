@@ -115,7 +115,10 @@
     "warningTitle": "Carico elevato persistente",
     "warningText": "L'indice supera {threshold} da {days} giorni.",
     "warningDismiss": "Ho capito",
-    "history": "Ultimi giorni"
+    "history": "Ultimi giorni",
+    "factorWeather": "Meteo",
+    "forecastTag": "Previsione",
+    "assumptionTag": "Ipotesi"
   },
   "stats": {
     "title": "Cifre del comune",
@@ -181,5 +184,43 @@
     "menu": "Menu",
     "loadGauge": "Indice di carico {value} su 100",
     "statusOf": "Stato: {status}"
+  },
+  "weather": {
+    "title": "Meteo",
+    "subtitle": "Previsione giornaliera del servizio meteo provinciale",
+    "today": "Oggi",
+    "tomorrow": "Domani",
+    "rain": "Pioggia",
+    "sun": "Sole",
+    "forecastNote": "Previsione del servizio meteo provinciale per Castelrotto – non una misurazione.",
+    "todayMissing": "Per oggi non è più disponibile una previsione giornaliera. Si mostra da domani.",
+    "q": {
+      "sunny": "Soleggiato",
+      "partlyCloudy": "Parzialmente nuvoloso",
+      "cloudy": "Nuvoloso",
+      "veryCloudy": "Molto nuvoloso",
+      "overcast": "Coperto",
+      "rain": "Pioggia",
+      "thunderstorm": "Temporale",
+      "snow": "Neve",
+      "fog": "Nebbia",
+      "unknown": "Condizione sconosciuta"
+    }
+  },
+  "verlauf": {
+    "title": "Andamento",
+    "subtitle": "Raccolto automaticamente ogni 30 minuti, consultabile pubblicamente",
+    "source": "Serie storica pubblica nel repository",
+    "none": "Ancora nessun dato storico. La raccolta inizia con la prima esecuzione dell'azione GitHub.",
+    "daysRecorded": "{n} giorni registrati",
+    "since": "dal {date}",
+    "samples": "{n} rilevazioni",
+    "closureDays": "Giorni con chiusura",
+    "peakGarage": "Occupazione massima dei garage",
+    "dailyIndex": "Indice di carico per giorno (massimo giornaliero)",
+    "download": "Dati grezzi in CSV",
+    "why": "Un'istantanea non dimostra nulla. Solo l'andamento su una stagione mostra quanto spesso si raggiunge il limite.",
+    "daysRecordedOne": "1 giorno registrato",
+    "samplesOne": "1 rilevazione"
   }
 }

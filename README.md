@@ -100,6 +100,8 @@ Alle Quellen sind offen und ohne Schlüssel nutzbar. Geprüft am 05.09.2026.
 | Webcams | [Open Data Hub – Tourism](https://tourism.api.opendatahub.com) | CC0 / CC-BY | live |
 | Nächtigungen, Betten, Bevölkerung, Fahrzeuge | [ASTAT über den Geodienst der Provinz](https://geoservices1.civis.bz.it/geoserver/p_bz-Astat/ows) | CC0 | Jahreswerte 2023 |
 | Betriebszeiten Umlaufbahn | Fahrplan Seiser Alm Bahn AG | — | gepflegte Konfiguration |
+| Tagesvorhersage Wetter | [Landeswetterdienst über Open Data Hub](https://mobility.api.opendatahub.com) (Station 021019) | CC0 / CC-BY | Vorhersage, 4 Tage |
+| Verlauf (Zeitreihe) | eigene Sammlung, `static/verlauf/verlauf.csv` | CC0 | alle 30 Min. |
 
 Jede Quelle liegt hinter einem Adapter in `src/lib/adapters/`. Alle Adapter
 liefern dieselbe Hülle (`SourceResult<T>` mit Zustand, Zeitstempel und Herkunft),
@@ -165,10 +167,14 @@ aufklappbar — Gewicht und Beitrag jedes Faktors stehen dort als Tabelle.
 
 | Faktor | Gewicht | Grundlage |
 | --- | --- | --- |
-| Auslastung der Dorf-Parkgaragen | 40 % | Messung |
+| Auslastung der Dorf-Parkgaragen | 35 % | Messung |
 | Sperrstatus Seiser Alm-Straße | 20 % | Messung |
-| Saison | 25 % | feste Tabelle, als Annahme gekennzeichnet |
-| Wochentag | 15 % | feste Tabelle, als Annahme gekennzeichnet |
+| Wetter | 20 % | Vorhersage des Landeswetterdienstes, als solche gekennzeichnet |
+| Saison | 15 % | feste Tabelle, als Annahme gekennzeichnet |
+| Wochentag | 10 % | feste Tabelle, als Annahme gekennzeichnet |
+
+Die Wetterbewertung (Wetterlage als Grundwert, Regen und Kälte ziehen ab, Wärme
+legt zu) steht in `src/lib/adapters/weather.ts` — `weatherScore()`.
 
 **Fehlt ein Faktor, wird nichts geschätzt** — sein Gewicht verteilt sich
 anteilig auf die übrigen, und die Tabelle weist das aus. Die Saison- und
@@ -178,6 +184,33 @@ Wochentagstabellen stehen gesammelt in `src/lib/logic/load-index.ts`; wer sie
 **Frühwarnung:** Liegt der Index an drei aufeinanderfolgenden Kalendertagen über
 75, erscheint ein Hinweisbanner. Lücken im Verlauf zählen nicht als
 zusammenhängend.
+
+---
+
+## Die öffentliche Zeitreihe
+
+Ein Schnappschuss belegt nichts. Deshalb hängt eine GitHub Action
+(`.github/workflows/sammeln.yml`) **alle 30 Minuten** eine Messzeile an
+`static/verlauf/verlauf.csv`: Sperrstatus, Rohwerte beider Garagen, Wetter des
+Tages. Nach einer Saison liegt damit ein Datensatz vor, den jeder nachprüfen
+kann — mit Zeitstempel und Commit-Historie.
+
+* **Rohwerte, keine abgeleiteten.** Die App rechnet die Belegung beim Lesen mit
+  derselben Prüfung wie live. Ändert sich eine Regel, gilt sie rückwirkend.
+* **Lücken bleiben Lücken.** Ein Tag ohne Messung wird nicht aufgefüllt.
+* Die Frühwarnung nutzt diese Reihe und kennt damit auch Tage, an denen das
+  eigene Gerät die App nicht geöffnet hatte. Der lokale Verlauf bleibt Rückfall.
+* Kosten: öffentliche Repositories haben unbegrenzte Action-Minuten, private
+  2.000/Monat — 48 Läufe am Tag brauchen rund 1.440.
+
+Die Datei liegt unter `static/`, wird also mit ausgeliefert. Damit sie auf der
+veröffentlichten Seite aktuell bleibt, muss das Hosting bei jedem Push neu
+bauen (Cloudflare Pages und GitHub Pages tun das von selbst).
+
+Manuell anstoßen: `node scripts/sammeln.mjs`.
+
+Ein zweiter Workflow (`quellen-pruefen.yml`) lässt täglich `daten:pruefen`
+laufen und geht rot, wenn eine Quelle ausfällt.
 
 ---
 

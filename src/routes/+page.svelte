@@ -5,11 +5,14 @@
   import LoadGauge from '$lib/components/LoadGauge.svelte';
   import ParkingCard from '$lib/components/ParkingCard.svelte';
   import CablecarCard from '$lib/components/CablecarCard.svelte';
+  import WeatherCard from '$lib/components/WeatherCard.svelte';
   import WebcamGrid from '$lib/components/WebcamGrid.svelte';
 
   import { loadRoadStatus, type RoadStatus } from '$lib/adapters/traffic';
   import { parkingAdapter, type ParkingLot } from '$lib/adapters/parking';
   import { loadCablecarStatus, type CablecarStatus } from '$lib/adapters/cablecar';
+  import { weatherAdapter, type Weather } from '$lib/adapters/weather';
+  import { verlaufAdapter, toHistory } from '$lib/adapters/verlauf';
   import type { SourceResult } from '$lib/adapters/types';
   import {
     computeLoadIndex,
@@ -22,6 +25,7 @@
   let road = $state<SourceResult<RoadStatus> | null>(null);
   let parking = $state<SourceResult<ParkingLot[]> | null>(null);
   let cablecar = $state<SourceResult<CablecarStatus> | null>(null);
+  let weather = $state<SourceResult<Weather> | null>(null);
   let index = $state<LoadIndex | null>(null);
   let warning = $state<{ active: boolean; days: number }>({ active: false, days: 0 });
   let warningDismissed = $state(false);
@@ -30,21 +34,30 @@
   async function loadAll() {
     loading = true;
     // Parallel laden: Faellt eine Quelle aus, zeigen die anderen trotzdem Werte.
-    const [r, p, c] = await Promise.all([
+    const [r, p, c, w, v] = await Promise.all([
       loadRoadStatus(),
       parkingAdapter.load(),
-      loadCablecarStatus()
+      loadCablecarStatus(),
+      weatherAdapter.load(),
+      verlaufAdapter.load()
     ]);
     road = r;
     parking = p;
     cablecar = c;
+    weather = w;
 
-    const computed = computeLoadIndex({ parking: p.data, road: r.data });
+    const computed = computeLoadIndex({ parking: p.data, road: r.data, weather: w.data });
     index = computed;
 
     if (computed.value !== null) {
-      const history = recordDailyValue(computed.value);
-      warning = checkWarning(history);
+      const local = recordDailyValue(computed.value);
+      // Fruehwarnung bevorzugt die oeffentliche Zeitreihe: Sie kennt die
+      // Tage, an denen dieses Geraet die App nicht geoeffnet hatte. Der
+      // lokale Verlauf bleibt Rueckfall, falls die CSV nicht erreichbar ist.
+      const shared = v.data ? toHistory(v.data) : [];
+      const merged = new Map(local.map((e) => [e.date, e]));
+      for (const e of shared) merged.set(e.date, e);
+      warning = checkWarning([...merged.values()]);
     }
     loading = false;
   }
@@ -106,6 +119,10 @@
 
   {#if cablecar}
     <CablecarCard result={cablecar} />
+  {/if}
+
+  {#if weather}
+    <WeatherCard result={weather} />
   {/if}
 
   <WebcamGrid />

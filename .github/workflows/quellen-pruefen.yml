@@ -1,0 +1,21 @@
+# Taeglich alle Datenquellen pruefen. Schlaegt eine fehl, geht das Workflow
+# rot - und wer Benachrichtigungen fuer das Repository aktiviert hat, erfaehrt
+# es. Sonst merkt niemand, wenn die dritte Webcam stirbt.
+
+name: Datenquellen pruefen
+
+on:
+  schedule:
+    - cron: '15 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  pruefen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/check-sources.mjs

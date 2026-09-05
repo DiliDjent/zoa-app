@@ -2,10 +2,13 @@
   import { onMount } from 'svelte';
   import { t, fmtNumber } from '$lib/i18n';
   import DataFreshness from '$lib/components/DataFreshness.svelte';
+  import VerlaufCard from '$lib/components/VerlaufCard.svelte';
   import { statisticsAdapter, ratios, type Statistics } from '$lib/adapters/statistics';
+  import { verlaufAdapter, type Verlauf } from '$lib/adapters/verlauf';
   import type { SourceResult } from '$lib/adapters/types';
 
   let result = $state<SourceResult<Statistics> | null>(null);
+  let verlauf = $state<SourceResult<Verlauf> | null>(null);
   let loading = $state(true);
 
   const stats = $derived(result?.data ?? null);
@@ -15,7 +18,11 @@
   const staysPerDay = $derived(stats?.overnightStays ? stats.overnightStays / 365 : null);
 
   onMount(async () => {
-    result = await statisticsAdapter.load();
+    // Der Verlauf kommt aus der eigenen Auslieferung und ist schnell da; die
+    // ASTAT-Abfrage dauert laenger. Beides parallel, damit nichts wartet.
+    const [s, v] = await Promise.all([statisticsAdapter.load(), verlaufAdapter.load()]);
+    result = s;
+    verlauf = v;
     loading = false;
   });
 
@@ -33,6 +40,10 @@
     <h1 class="text-xl font-extrabold tracking-tight">{$t('stats.title')}</h1>
     <p class="text-[13px] muted mt-0.5">{$t('stats.subtitle')}</p>
   </header>
+
+  {#if verlauf}
+    <VerlaufCard result={verlauf} />
+  {/if}
 
   {#if loading}
     <div class="card px-4 py-10 text-center muted text-sm">{$t('common.loading')}</div>

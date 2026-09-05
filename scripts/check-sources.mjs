@@ -196,6 +196,28 @@ async function pruefeAstat() {
   }
 }
 
+async function pruefeWetter() {
+  console.log('\nWettervorhersage (Landeswetterdienst, Open Data Hub)');
+  const from = new Date(Date.now() - 86400 * 1000).toISOString().slice(0, 10);
+  const to = new Date(Date.now() + 3 * 86400 * 1000).toISOString().slice(0, 10);
+  const url =
+    'https://mobility.api.opendatahub.com/v2/flat/WeatherForecast/qualitative-forecast,forecast-air-temperature-max/' +
+    `${from}/${to}?limit=-1&select=tname,mvalue,mvalidtime&where=scode.eq."021019",mperiod.eq.86400`;
+  try {
+    const res = await json(url);
+    const days = new Set((res.data ?? []).map((r) => r.mvalidtime.slice(0, 10)));
+    if (days.size === 0) {
+      line(FAIL, 'Tagesvorhersage Kastelruth', 'keine Werte - Station 021019 pruefen');
+      problems++;
+    } else {
+      line(OK, 'Tagesvorhersage Kastelruth', `${days.size} Tage vorhanden`);
+    }
+  } catch (e) {
+    line(FAIL, 'Tagesvorhersage Kastelruth', e.message);
+    problems++;
+  }
+}
+
 async function pruefeUmlaufbahn() {
   console.log('\nUmlaufbahn-Fahrplan (gepflegte Konfiguration)');
   // Der Fahrplan kommt nicht aus einer Schnittstelle, sondern aus der
@@ -225,6 +247,7 @@ await pruefeVerkehr();
 await pruefeParkplaetze();
 await pruefeWebcams();
 await pruefeAstat();
+await pruefeWetter();
 await pruefeUmlaufbahn();
 
 console.log(

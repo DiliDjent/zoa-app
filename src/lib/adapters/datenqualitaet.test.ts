@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { deriveOccupancy, shape } from './parking';
 import { evaluate as evaluateRoad, parseDailyClosure, type TrafficNotice } from './traffic';
 import { computeLoadIndex, checkWarning } from '$lib/logic/load-index';
+import { conditionKey, weatherScore, shape as shapeWeather } from './weather';
+import { parseCsv, aggregate, toHistory } from './verlauf';
 import type { ParkingConfig } from '$lib/config/kastelruth';
 
 /**
@@ -18,6 +20,7 @@ const cfg = (over: Partial<ParkingConfig> = {}): ParkingConfig => ({
   capacity: 218,
   lat: 0,
   lon: 0,
+  csvKey: 'test',
   ...over
 });
 
@@ -212,5 +215,62 @@ describe('Fruehwarnung', () => {
       { date: '2026-09-05', value: 75 }
     ];
     expect(checkWarning(h).active).toBe(false);
+  });
+});
+
+describe('Wetter-Vorhersage', () => {
+  it('ordnet Regen vor Bewoelkung ein', () => {
+    expect(conditionKey('cloudy with moderate rain')).toBe('weather.q.rain');
+    expect(conditionKey('cloudy, thunderstorms with moderate showers')).toBe('weather.q.thunderstorm');
+    expect(conditionKey('partly cloudy')).toBe('weather.q.partlyCloudy');
+    expect(conditionKey('very cloudy')).toBe('weather.q.veryCloudy');
+  });
+
+  it('bewertet Schoenwetter hoch und Dauerregen niedrig', () => {
+    const base = { date: '2026-08-15', condition: '', tempMin: null, precipitationProbability: null, sunshineHours: null };
+    const sonne = { ...base, conditionKey: 'weather.q.sunny', tempMax: 28, precipitationMm: 0 };
+    const regen = { ...base, conditionKey: 'weather.q.rain', tempMax: 12, precipitationMm: 20 };
+    expect(weatherScore(sonne)).toBe(100);
+    expect(weatherScore(regen)).toBe(0);
+  });
+
+  it('legt einen Tageswert auf den richtigen Kalendertag', () => {
+    // 22:00 UTC am 05.09. ist Mitternacht Ortszeit des 06.09.
+    const w = shapeWeather(
+      [{ tname: 'qualitative-forecast', mvalue: 'sunny', mvalidtime: '2026-09-05 22:00:00.000+0000' }],
+      new Date('2026-09-05T18:00:00Z')
+    );
+    expect(w.days[0].date).toBe('2026-09-06');
+    expect(w.todayMissing).toBe(true);
+  });
+});
+
+describe('Oeffentliche Zeitreihe', () => {
+  const csv = [
+    'zeit_utc,strasse,sperre_von,sperre_bis,test_occupied,test_occupied_short_stay,test_occupied_subscribers,wetter_tag,wetter,temp_max,regen_mm',
+    '2026-08-15T07:00:00Z,open,09:00,17:00,0,40,0,2026-08-15,sunny,28,0',
+    '2026-08-15T10:00:00Z,closed,09:00,17:00,0,90,0,2026-08-15,sunny,28,0',
+    '2026-08-16T10:00:00Z,open,09:00,17:00,0,10,0,,,,'
+  ].join('\n');
+
+  it('liest die Datei und bildet Tageswerte', () => {
+    const v = aggregate(parseCsv(csv));
+    expect(v.totalSamples).toBe(3);
+    expect(v.days.map((d) => d.date)).toEqual(['2026-08-15', '2026-08-16']);
+    expect(v.days[0].samples).toBe(2);
+    expect(v.days[0].closedShare).toBe(0.5);
+    expect(v.days[1].closedShare).toBe(0);
+  });
+
+  it('liefert das Tagesmaximum fuer die Fruehwarnung', () => {
+    const h = toHistory(aggregate(parseCsv(csv)));
+    expect(h).toHaveLength(2);
+    expect(h[0].value).toBeGreaterThan(h[1].value);
+  });
+
+  it('kommt mit einer leeren Datei zurecht', () => {
+    const v = aggregate(parseCsv('zeit_utc,strasse\n'));
+    expect(v.days).toEqual([]);
+    expect(v.totalSamples).toBe(0);
   });
 });

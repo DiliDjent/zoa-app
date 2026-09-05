@@ -115,7 +115,10 @@
     "warningTitle": "Anhaltend hohe Belastung",
     "warningText": "Der Index liegt seit {days} Tagen über {threshold}.",
     "warningDismiss": "Verstanden",
-    "history": "Letzte Tage"
+    "history": "Letzte Tage",
+    "factorWeather": "Wetter",
+    "forecastTag": "Vorhersage",
+    "assumptionTag": "Annahme"
   },
   "stats": {
     "title": "Zahlen zur Gemeinde",
@@ -181,5 +184,43 @@
     "menu": "Menü",
     "loadGauge": "Belastungs-Index {value} von 100",
     "statusOf": "Status: {status}"
+  },
+  "weather": {
+    "title": "Wetter",
+    "subtitle": "Tagesvorhersage des Landeswetterdienstes",
+    "today": "Heute",
+    "tomorrow": "Morgen",
+    "rain": "Regen",
+    "sun": "Sonne",
+    "forecastNote": "Vorhersage des Landeswetterdienstes für Kastelruth – keine Messung.",
+    "todayMissing": "Für heute liegt keine Tagesvorhersage mehr vor. Angezeigt wird ab morgen.",
+    "q": {
+      "sunny": "Sonnig",
+      "partlyCloudy": "Teils bewölkt",
+      "cloudy": "Bewölkt",
+      "veryCloudy": "Stark bewölkt",
+      "overcast": "Bedeckt",
+      "rain": "Regen",
+      "thunderstorm": "Gewitter",
+      "snow": "Schnee",
+      "fog": "Nebel",
+      "unknown": "Wetterlage unbekannt"
+    }
+  },
+  "verlauf": {
+    "title": "Verlauf",
+    "subtitle": "Alle 30 Minuten automatisch gesammelt, öffentlich einsehbar",
+    "source": "Öffentliche Zeitreihe im Repository",
+    "none": "Noch keine Verlaufsdaten. Die Sammlung beginnt mit dem ersten Lauf der GitHub-Aktion.",
+    "daysRecorded": "{n} Tage erfasst",
+    "since": "seit {date}",
+    "samples": "{n} Messungen",
+    "closureDays": "Tage mit Sperre",
+    "peakGarage": "Höchste Garagen-Auslastung",
+    "dailyIndex": "Belastungs-Index je Tag (Tagesmaximum)",
+    "download": "Rohdaten als CSV",
+    "why": "Ein Schnappschuss belegt nichts. Erst der Verlauf über eine Saison zeigt, wie oft die Grenze erreicht wird.",
+    "daysRecordedOne": "1 Tag erfasst",
+    "samplesOne": "1 Messung"
   }
 }

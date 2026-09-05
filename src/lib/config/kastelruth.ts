@@ -42,6 +42,8 @@ export interface ParkingConfig {
    * obwohl er voll ist.
    */
   aggregateFieldBroken?: boolean;
+  /** Spaltenpraefix in der oeffentlichen Zeitreihe (static/verlauf/verlauf.csv). */
+  csvKey: string;
 }
 
 export const PARKPLAETZE: ParkingConfig[] = [
@@ -52,7 +54,8 @@ export const PARKPLAETZE: ParkingConfig[] = [
     capacity: 218,
     lat: 46.5666,
     lon: 11.5595,
-    aggregateFieldBroken: true
+    aggregateFieldBroken: true,
+    csvKey: 'centralpark'
   },
   {
     code: 'urn:parking:skidata:f0d63a37-09bc-5f5c-83f9-f1cfea643b70',
@@ -60,7 +63,8 @@ export const PARKPLAETZE: ParkingConfig[] = [
     nameIt: 'Albin Gross Zentrum Garage',
     capacity: 97,
     lat: 46.5679,
-    lon: 11.5613
+    lon: 11.5613,
+    csvKey: 'albingross'
   }
 ];
 
@@ -199,6 +203,39 @@ export const UMLAUFBAHN = {
       labelDe: 'Sommerbetrieb'
     }
   ] as Betriebszeitraum[]
+};
+
+/* ------------------------------------------------------------------ */
+/* Wetter                                                              */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Tagesvorhersage des Landeswetterdienstes fuer Kastelruth (Open Data Hub,
+ * Stationstyp WeatherForecast). Geprueft am 05.09.2026: liefert Wetterlage,
+ * Temperatur, Niederschlag und Sonnenstunden fuer die naechsten vier Tage.
+ * Der laufende Tag faellt aus der Reihe, sobald er begonnen hat - der Adapter
+ * nimmt dann den naechsten verfuegbaren Tag und sagt das dazu.
+ * Anonyme Abfragen duerfen hoechstens 5 Tage umfassen (API-Quota).
+ */
+export const WETTER = {
+  stationCode: '021019',
+  nameDe: 'Kastelruth (Landeswetterdienst)',
+  maxRangeDays: 5
+};
+
+/* ------------------------------------------------------------------ */
+/* Verlauf                                                             */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Oeffentliche Zeitreihe. Eine GitHub Action haengt alle 30 Minuten eine Zeile
+ * an diese Datei (siehe scripts/sammeln.mjs). Sie liegt unter static/, damit
+ * sie mit ausgeliefert wird und die App sie ohne Fremd-URL laden kann.
+ */
+export const VERLAUF = {
+  pfad: '/verlauf/verlauf.csv',
+  /** So viele Tage zeigt die Statistik-Seite. */
+  anzeigeTage: 30
 };
 
 /* ------------------------------------------------------------------ */
